@@ -190,10 +190,17 @@
    * @typedef {{id: string, label: string, detail: string, optional?: boolean, tag?: string}} TaskDef
    */
 
+  let selectedOffset = 0; // 0 = today
+  let currentView = "dia";
+
   function nowInSP() {
-    return new Date(
-      new Date().toLocaleString("en-US", { timeZone: TZ })
-    );
+    return new Date(new Date().toLocaleString("en-US", { timeZone: TZ }));
+  }
+
+  function addDays(base, n) {
+    const d = new Date(base);
+    d.setDate(d.getDate() + n);
+    return d;
   }
 
   function dateKey(d = nowInSP()) {
@@ -201,6 +208,10 @@
     const m = String(d.getMonth() + 1).padStart(2, "0");
     const day = String(d.getDate()).padStart(2, "0");
     return `${y}-${m}-${day}`;
+  }
+
+  function selectedDate() {
+    return addDays(nowInSP(), selectedOffset);
   }
 
   function loadState() {
@@ -229,14 +240,16 @@
     return [...plan.morning, ...plan.evening].map((t) => t.id);
   }
 
+  function trackIdsFor(dayIndex) {
+    const req = requiredIds(dayIndex);
+    return req.length ? req : allIds(dayIndex);
+  }
+
   function isDayComplete(state, key, dayIndex) {
     const done = state.days[key] || {};
-    const req = requiredIds(dayIndex);
-    if (req.length === 0) {
-      const any = allIds(dayIndex).some((id) => done[id]);
-      return any;
-    }
-    return req.every((id) => done[id]);
+    const ids = trackIdsFor(dayIndex);
+    if (!ids.length) return false;
+    return ids.every((id) => done[id]);
   }
 
   function recomputeStreak(state) {
@@ -248,7 +261,6 @@
       const complete = isDayComplete(state, key, dayIndex);
       if (!complete) {
         if (i === 0) {
-          // hoje incompleto não quebra sequência anterior
           cursor.setDate(cursor.getDate() - 1);
           continue;
         }
@@ -265,20 +277,30 @@
     return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>`;
   }
 
-  function renderTask(task, done) {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = `task${done ? " done" : ""}${task.optional ? " optional" : ""}`;
-    btn.dataset.id = task.id;
-    btn.innerHTML = `
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function renderTask(task, done, { interactive = true } = {}) {
+    const el = document.createElement(interactive ? "button" : "div");
+    if (interactive) el.type = "button";
+    el.className = `task${done ? " done" : ""}${task.optional ? " optional" : ""}${
+      interactive ? "" : " static"
+    }`;
+    if (interactive) el.dataset.id = task.id;
+    el.innerHTML = `
       <span class="check">${checkSvg()}</span>
       <span class="task-copy">
-        <strong>${task.label}</strong>
-        <span>${task.detail}</span>
-        ${task.tag ? `<span class="tag">${task.tag}</span>` : ""}
+        <strong>${escapeHtml(task.label)}</strong>
+        <span>${escapeHtml(task.detail)}</span>
+        ${task.tag ? `<span class="tag">${escapeHtml(task.tag)}</span>` : ""}
       </span>
     `;
-    return btn;
+    return el;
   }
 
   function renderList(el, tasks, doneMap) {
@@ -308,38 +330,180 @@
     const today = nowInSP();
     const day = today.getDay();
     const mondayOffset = day === 0 ? -6 : 1 - day;
-    const monday = new Date(today);
-    monday.setDate(today.getDate() + mondayOffset);
+    const monday = addDays(today, mondayOffset);
     const keys = [];
     for (let i = 0; i < 7; i++) {
-      const d = new Date(monday);
-      d.setDate(monday.getDate() + i);
+      const d = addDays(monday, i);
       keys.push({ date: d, key: dateKey(d), dayIndex: d.getDay() });
     }
     return keys;
   }
 
+  function upcomingKeys(count = 7) {
+    const today = nowInSP();
+    const keys = [];
+    for (let i = 0; i < count; i++) {
+      const d = addDays(today, i);
+      keys.push({ date: d, key: dateKey(d), dayIndex: d.getDay(), offset: i });
+    }
+    return keys;
+  }
+
+  function renderDayStrip(state) {
+    const strip = document.getElementById("dayStrip");
+    strip.innerHTML = "";
+    const todayKey = dateKey();
+    for (const item of upcomingKeys(7)) {
+      const ids = trackIdsFor(item.dayIndex);
+      const doneMap = state.days[item.key] || {};
+      const done = ids.filter((id) => doneMap[id]).length;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = `strip-day${item.offset === selectedOffset ? " active" : ""}${
+        item.key === todayKey ? " is-today" : ""
+      }${isDayComplete(state, item.key, item.dayIndex) ? " complete" : ""}`;
+      btn.dataset.offset = String(item.offset);
+      const label =
+        item.offset === 0
+          ? "Hoje"
+          : item.offset === 1
+            ? "Amanhã"
+            : DAY_NAMES[item.dayIndex];
+      btn.innerHTML = `
+        <span class="sd-l">${label}</span>
+        <span class="sd-n">${item.date.getDate()}</span>
+        <span class="sd-p">${done}/${ids.length}</span>
+      `;
+      strip.appendChild(btn);
+    }
+  }
+
   function renderWeek(state) {
     const grid = document.getElementById("weekGrid");
     const todayKey = dateKey();
+    const selectedKey = dateKey(selectedDate());
+    const todayClean = new Date(todayKey + "T12:00:00");
     grid.innerHTML = "";
     for (const item of weekKeys()) {
       const doneMap = state.days[item.key] || {};
-      const req = requiredIds(item.dayIndex);
-      const ids = req.length ? req : allIds(item.dayIndex);
+      const ids = trackIdsFor(item.dayIndex);
       const done = ids.filter((id) => doneMap[id]).length;
-      const total = ids.length || 1;
       const complete = isDayComplete(state, item.key, item.dayIndex);
-      const cell = document.createElement("div");
-      cell.className = `day-cell${item.key === todayKey ? " today" : ""}${
-        complete ? " complete" : ""
-      }`;
-      cell.innerHTML = `
+      const itemClean = new Date(item.key + "T12:00:00");
+      const off = Math.round((itemClean - todayClean) / 86400000);
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = `day-cell${item.key === todayKey ? " today" : ""}${
+        item.key === selectedKey ? " selected" : ""
+      }${complete ? " complete" : ""}`;
+      btn.dataset.offset = String(off);
+      btn.innerHTML = `
         <span class="d">${DAY_NAMES[item.dayIndex]}</span>
-        <span class="n">${item.date.getDate()}</span>
+        <span class="n">${itemClean.getDate()}</span>
         <span class="p">${done}/${ids.length || 0}</span>
       `;
-      grid.appendChild(cell);
+      grid.appendChild(btn);
+    }
+  }
+
+  function renderAgenda(state) {
+    const list = document.getElementById("agendaList");
+    list.innerHTML = "";
+    for (const item of upcomingKeys(7)) {
+      const plan = PLAN[item.dayIndex];
+      const doneMap = state.days[item.key] || {};
+      const ids = trackIdsFor(item.dayIndex);
+      const done = ids.filter((id) => doneMap[id]).length;
+      const card = document.createElement("article");
+      card.className = `agenda-card${item.offset === 0 ? " today" : ""}`;
+      const heading =
+        item.offset === 0
+          ? "Hoje"
+          : item.offset === 1
+            ? "Amanhã"
+            : DAY_FULL[item.dayIndex];
+      const dateStr = item.date.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "short",
+      });
+
+      const tasks = [...plan.morning, ...plan.evening];
+      const rows = tasks
+        .map((t) => {
+          const ok = Boolean(doneMap[t.id]);
+          return `<li class="agenda-task${ok ? " done" : ""}${
+            t.optional ? " optional" : ""
+          }">
+            <span class="dot"></span>
+            <span>
+              <strong>${escapeHtml(t.label)}</strong>
+              <small>${t.tag ? escapeHtml(t.tag) + " · " : ""}${
+                t.optional ? "opcional · " : ""
+              }${escapeHtml(
+                t.detail.split("·")[0].trim()
+              )}</small>
+            </span>
+          </li>`;
+        })
+        .join("");
+
+      card.innerHTML = `
+        <button type="button" class="agenda-head" data-offset="${item.offset}">
+          <div>
+            <strong>${heading}</strong>
+            <span>${dateStr} · ${plan.hint}</span>
+          </div>
+          <em>${done}/${ids.length}</em>
+        </button>
+        <ul class="agenda-tasks">${rows}</ul>
+      `;
+      list.appendChild(card);
+    }
+  }
+
+  function renderOverviewByTag() {
+    const root = document.getElementById("overviewByTag");
+    const tags = ["Corpo", "Idioma", "YouTube", "Dota"];
+    const byTag = {};
+    for (const tag of tags) byTag[tag] = [];
+
+    for (let day = 0; day < 7; day++) {
+      const plan = PLAN[day];
+      for (const t of [...plan.morning, ...plan.evening]) {
+        const tag = t.tag || "Outros";
+        if (!byTag[tag]) byTag[tag] = [];
+        byTag[tag].push({
+          day,
+          label: t.label,
+          detail: t.detail,
+          optional: Boolean(t.optional),
+        });
+      }
+    }
+
+    root.innerHTML = "";
+    for (const [tag, items] of Object.entries(byTag)) {
+      if (!items.length) continue;
+      const card = document.createElement("article");
+      card.className = "tag-card";
+      const rows = items
+        .map(
+          (it) => `<li>
+          <strong>${DAY_NAMES[it.day]}</strong>
+          <span>${escapeHtml(it.label)}${
+            it.optional ? " · opcional" : ""
+          }</span>
+        </li>`
+        )
+        .join("");
+      card.innerHTML = `
+        <header>
+          <h4>${escapeHtml(tag)}</h4>
+          <span>${items.length} tarefa${items.length > 1 ? "s" : ""}/sem</span>
+        </header>
+        <ul>${rows}</ul>
+      `;
+      root.appendChild(card);
     }
   }
 
@@ -349,29 +513,49 @@
     return "Boa noite";
   }
 
+  function setView(view) {
+    currentView = view;
+    document
+      .querySelectorAll(".tab")
+      .forEach((t) => t.classList.toggle("active", t.dataset.view === view));
+    document.getElementById("viewDia").classList.toggle("hidden", view !== "dia");
+    document
+      .getElementById("viewProximos")
+      .classList.toggle("hidden", view !== "proximos");
+    document
+      .getElementById("viewVisao")
+      .classList.toggle("hidden", view !== "visao");
+  }
+
   function render() {
     const state = loadState();
     const now = nowInSP();
-    const key = dateKey(now);
-    const dayIndex = now.getDay();
+    const selected = selectedDate();
+    const key = dateKey(selected);
+    const dayIndex = selected.getDay();
     const plan = PLAN[dayIndex];
     const doneMap = state.days[key] || {};
-
-    const tasks = [...plan.morning, ...plan.evening];
-    const trackIds = requiredIds(dayIndex).length
-      ? requiredIds(dayIndex)
-      : tasks.map((t) => t.id);
+    const trackIds = trackIdsFor(dayIndex);
     const done = trackIds.filter((id) => doneMap[id]).length;
 
-    document.getElementById("dateLabel").textContent =
-      `${DAY_FULL[dayIndex]} · ${now.toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "short",
-      })} · SP`;
+    const relative =
+      selectedOffset === 0
+        ? "Hoje"
+        : selectedOffset === 1
+          ? "Amanhã"
+          : selectedOffset === -1
+            ? "Ontem"
+            : DAY_FULL[dayIndex];
+
+    document.getElementById("dateLabel").textContent = `${relative} · ${selected.toLocaleDateString(
+      "pt-BR",
+      { weekday: "short", day: "2-digit", month: "short" }
+    )} · SP`;
     document.getElementById("greeting").textContent = greetingForHour(
       now.getHours()
     );
-    document.getElementById("dayTitle").textContent = plan.title;
+    document.getElementById("dayTitle").textContent =
+      selectedOffset === 0 ? plan.title : `${relative} · ${plan.title}`;
     document.getElementById("dayHint").textContent = plan.hint;
 
     const streak = recomputeStreak(state);
@@ -382,14 +566,18 @@
         : "Sequência: comece hoje";
 
     setRing(done, trackIds.length);
+    renderDayStrip(state);
     renderList(document.getElementById("morningTasks"), plan.morning, doneMap);
     renderList(document.getElementById("eveningTasks"), plan.evening, doneMap);
+    renderAgenda(state);
+    renderOverviewByTag();
     renderWeek(state);
+    setView(currentView);
   }
 
   function toggleTask(id) {
     const state = loadState();
-    const key = dateKey();
+    const key = dateKey(selectedDate());
     state.days[key] = state.days[key] || {};
     state.days[key][id] = !state.days[key][id];
     if (!state.days[key][id]) delete state.days[key][id];
@@ -410,10 +598,45 @@
     toggleTask(btn.dataset.id);
   });
 
+  document.getElementById("dayStrip").addEventListener("click", (e) => {
+    const btn = e.target.closest(".strip-day");
+    if (!btn) return;
+    selectedOffset = Number(btn.dataset.offset);
+    render();
+  });
+
+  document.getElementById("agendaList").addEventListener("click", (e) => {
+    const head = e.target.closest(".agenda-head");
+    if (!head) return;
+    selectedOffset = Number(head.dataset.offset);
+    setView("dia");
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  document.getElementById("weekGrid").addEventListener("click", (e) => {
+    const cell = e.target.closest(".day-cell");
+    if (!cell) return;
+    selectedOffset = Number(cell.dataset.offset);
+    setView("dia");
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  document.querySelector(".tabs").addEventListener("click", (e) => {
+    const tab = e.target.closest(".tab");
+    if (!tab) return;
+    setView(tab.dataset.view);
+  });
+
   document.getElementById("resetToday").addEventListener("click", () => {
-    if (!confirm("Limpar as marcações de hoje?")) return;
+    const label =
+      selectedOffset === 0
+        ? "hoje"
+        : dateKey(selectedDate());
+    if (!confirm(`Limpar as marcações de ${label}?`)) return;
     const state = loadState();
-    delete state.days[dateKey()];
+    delete state.days[dateKey(selectedDate())];
     recomputeStreak(state);
     saveState(state);
     render();

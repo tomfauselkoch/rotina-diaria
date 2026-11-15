@@ -8,7 +8,10 @@
     />
     <meta name="theme-color" content="#0c1f24" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
     <meta name="apple-mobile-web-app-title" content="Rotina" />
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" href="icon.svg" type="image/svg+xml" />
@@ -30,55 +33,84 @@
           <p class="eyebrow" id="dateLabel">—</p>
           <h1 id="greeting">Rotina</h1>
         </div>
-        <button type="button" class="icon-btn" id="resetToday" title="Limpar hoje">
+        <button
+          type="button"
+          class="icon-btn"
+          id="resetToday"
+          title="Limpar dia selecionado"
+        >
           Limpar
         </button>
       </header>
 
-      <section class="progress-card" aria-label="Progresso de hoje">
-        <div class="ring-wrap">
-          <svg class="ring" viewBox="0 0 96 96" aria-hidden="true">
-            <circle class="ring-track" cx="48" cy="48" r="40" />
-            <circle class="ring-value" id="ringValue" cx="48" cy="48" r="40" />
-          </svg>
-          <div class="ring-label">
-            <strong id="doneCount">0</strong>
-            <span id="totalCount">/0</span>
+      <nav class="tabs" aria-label="Visões">
+        <button type="button" class="tab active" data-view="dia">Dia</button>
+        <button type="button" class="tab" data-view="proximos">Próximos</button>
+        <button type="button" class="tab" data-view="visao">Visão geral</button>
+      </nav>
+
+      <section id="viewDia" class="view">
+        <div class="day-strip" id="dayStrip" aria-label="Escolher dia"></div>
+
+        <section class="progress-card" aria-label="Progresso do dia">
+          <div class="ring-wrap">
+            <svg class="ring" viewBox="0 0 96 96" aria-hidden="true">
+              <circle class="ring-track" cx="48" cy="48" r="40" />
+              <circle class="ring-value" id="ringValue" cx="48" cy="48" r="40" />
+            </svg>
+            <div class="ring-label">
+              <strong id="doneCount">0</strong>
+              <span id="totalCount">/0</span>
+            </div>
           </div>
-        </div>
-        <div class="progress-copy">
-          <h2 id="dayTitle">Hoje</h2>
-          <p id="dayHint">Marque o que concluir.</p>
-          <p class="streak" id="streakLabel">Sequência: 0 dias</p>
-        </div>
+          <div class="progress-copy">
+            <h2 id="dayTitle">Hoje</h2>
+            <p id="dayHint">Marque o que concluir.</p>
+            <p class="streak" id="streakLabel">Sequência: 0 dias</p>
+          </div>
+        </section>
+
+        <section class="block">
+          <h3>Manhã</h3>
+          <ul class="tasks" id="morningTasks"></ul>
+        </section>
+
+        <section class="block">
+          <h3>Noite</h3>
+          <ul class="tasks" id="eveningTasks"></ul>
+        </section>
       </section>
 
-      <section class="block">
-        <h3>Manhã</h3>
-        <ul class="tasks" id="morningTasks"></ul>
+      <section id="viewProximos" class="view hidden">
+        <section class="block">
+          <h3>Próximos 7 dias</h3>
+          <div class="agenda" id="agendaList"></div>
+        </section>
       </section>
 
-      <section class="block">
-        <h3>Noite</h3>
-        <ul class="tasks" id="eveningTasks"></ul>
+      <section id="viewVisao" class="view hidden">
+        <section class="block">
+          <h3>Por área</h3>
+          <div class="overview" id="overviewByTag"></div>
+        </section>
+        <section class="block">
+          <h3>Mapa da semana</h3>
+          <div class="week" id="weekGrid"></div>
+        </section>
+        <section class="block tips">
+          <h3>Lembretes</h3>
+          <ul class="tips-list">
+            <li>Sai de casa 8:00 · trabalho ~9:00–19:00 · em casa ~20:00</li>
+            <li>Fidúcia pesada = 1 fim de semana/mês (batch)</li>
+            <li>Dota Short ≤ 60 min de edição · 1×/semana</li>
+            <li>
+              Prioridade se apertar: sono → academia/húngaro → Fidúcia → Dota
+            </li>
+          </ul>
+        </section>
       </section>
 
-      <section class="block">
-        <h3>Semana</h3>
-        <div class="week" id="weekGrid"></div>
-      </section>
-
-      <section class="block tips">
-        <h3>Lembretes</h3>
-        <ul class="tips-list">
-          <li>Sai de casa 8:00 · trabalho ~9:00–19:00 · em casa ~20:00</li>
-          <li>Fidúcia pesada = 1 fim de semana/mês (batch)</li>
-          <li>Dota Short ≤ 60 min de edição · 1×/semana</li>
-          <li>Prioridade se apertar: sono → academia/húngaro → Fidúcia → Dota</li>
-        </ul>
-      </section>
-
-      <p class="install-hint" id="installHint">
+      <p class="install-hint">
         No celular: compartilhe → <strong>Adicionar à Tela de Início</strong>
         para abrir como app.
       </p>

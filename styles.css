@@ -90,6 +90,96 @@ h1 {
   transform: scale(0.98);
 }
 
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tab {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 10px 8px;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.view.hidden {
+  display: none;
+}
+
+.day-strip {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(64px, 1fr);
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 14px;
+  scrollbar-width: none;
+}
+
+.day-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.strip-day {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+  color: inherit;
+  border-radius: 16px;
+  padding: 10px 8px;
+  text-align: center;
+  font: inherit;
+  cursor: pointer;
+  min-width: 64px;
+}
+
+.strip-day.active {
+  border-color: rgba(212, 163, 92, 0.7);
+  background: var(--accent-soft);
+}
+
+.strip-day.complete {
+  border-color: rgba(111, 191, 154, 0.45);
+}
+
+.strip-day .sd-l {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.strip-day .sd-n {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+}
+
+.strip-day .sd-p {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
 .progress-card {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -291,6 +381,9 @@ h1 {
   text-align: center;
   background: rgba(255, 255, 255, 0.03);
   min-height: 64px;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
 }
 
 .day-cell.today {
@@ -298,9 +391,169 @@ h1 {
   background: var(--accent-soft);
 }
 
+.day-cell.selected {
+  outline: 1px solid rgba(212, 163, 92, 0.7);
+}
+
 .day-cell.complete {
   border-color: rgba(111, 191, 154, 0.45);
   background: var(--ok-soft);
+}
+
+.agenda {
+  display: grid;
+  gap: 12px;
+}
+
+.agenda-card {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+}
+
+.agenda-card.today {
+  border-color: rgba(212, 163, 92, 0.45);
+}
+
+.agenda-head {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 14px;
+  cursor: pointer;
+}
+
+.agenda-head strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  margin-bottom: 4px;
+}
+
+.agenda-head span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.agenda-head em {
+  font-style: normal;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.agenda-tasks {
+  list-style: none;
+  margin: 0;
+  padding: 0 14px 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.agenda-task {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.agenda-task .dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: rgba(232, 241, 240, 0.25);
+}
+
+.agenda-task.done .dot {
+  background: var(--ok);
+}
+
+.agenda-task.optional .dot {
+  background: transparent;
+  border: 1px dashed rgba(232, 241, 240, 0.35);
+}
+
+.agenda-task strong {
+  display: block;
+  font-size: 0.9rem;
+}
+
+.agenda-task small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.75rem;
+  margin-top: 2px;
+}
+
+.overview {
+  display: grid;
+  gap: 10px;
+}
+
+.tag-card {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 14px;
+}
+
+.tag-card header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.tag-card h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.tag-card header span {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.tag-card ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.tag-card li {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.tag-card li strong {
+  color: var(--accent);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tag-card li span {
+  color: var(--ink);
+  font-size: 0.88rem;
 }
 
 .day-cell .d {

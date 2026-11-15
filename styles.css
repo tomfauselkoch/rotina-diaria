@@ -1,0 +1,361 @@
+:root {
+  --bg0: #0c1f24;
+  --bg1: #143038;
+  --ink: #e8f1f0;
+  --muted: #9bb3b4;
+  --line: rgba(232, 241, 240, 0.12);
+  --card: rgba(20, 48, 56, 0.72);
+  --accent: #d4a35c;
+  --accent-soft: rgba(212, 163, 92, 0.18);
+  --ok: #6fbf9a;
+  --ok-soft: rgba(111, 191, 154, 0.16);
+  --danger: #d9897a;
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+  --radius: 22px;
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "DM Sans", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--bg0);
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  min-height: 100dvh;
+}
+
+.bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(900px 500px at 10% -10%, rgba(212, 163, 92, 0.22), transparent 55%),
+    radial-gradient(700px 480px at 100% 0%, rgba(88, 156, 150, 0.2), transparent 50%),
+    linear-gradient(165deg, #0b181c 0%, #123038 48%, #0d2228 100%);
+}
+
+.app {
+  width: min(440px, 100%);
+  margin: 0 auto;
+  padding: 20px 18px calc(36px + env(safe-area-inset-bottom));
+}
+
+.top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 6vw, 2.2rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.icon-btn {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 10px 14px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.icon-btn:active {
+  transform: scale(0.98);
+}
+
+.progress-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow);
+  margin-bottom: 18px;
+}
+
+.ring-wrap {
+  position: relative;
+  width: 96px;
+  height: 96px;
+}
+
+.ring {
+  width: 96px;
+  height: 96px;
+  transform: rotate(-90deg);
+}
+
+.ring-track,
+.ring-value {
+  fill: none;
+  stroke-width: 8;
+}
+
+.ring-track {
+  stroke: rgba(255, 255, 255, 0.08);
+}
+
+.ring-value {
+  stroke: var(--accent);
+  stroke-linecap: round;
+  stroke-dasharray: 251.2;
+  stroke-dashoffset: 251.2;
+  transition: stroke-dashoffset 0.45s ease;
+}
+
+.ring-label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  line-height: 1;
+}
+
+.ring-label strong {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+}
+
+.ring-label span {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.progress-copy h2 {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.progress-copy p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.streak {
+  margin-top: 8px !important;
+  color: var(--accent) !important;
+  font-weight: 600;
+}
+
+.block {
+  margin-bottom: 16px;
+}
+
+.block h3 {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.tasks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.task {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: start;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+  color: inherit;
+  border-radius: 16px;
+  padding: 14px 14px;
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.task:active {
+  transform: scale(0.995);
+}
+
+.task.done {
+  background: var(--ok-soft);
+  border-color: rgba(111, 191, 154, 0.35);
+}
+
+.check {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  border: 1.5px solid rgba(232, 241, 240, 0.35);
+  display: grid;
+  place-items: center;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.task.done .check {
+  background: var(--ok);
+  border-color: var(--ok);
+  color: #0c1f24;
+}
+
+.check svg {
+  opacity: 0;
+  width: 14px;
+  height: 14px;
+}
+
+.task.done .check svg {
+  opacity: 1;
+}
+
+.task-copy strong {
+  display: block;
+  font-size: 0.98rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.task-copy span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.task.optional {
+  border-style: dashed;
+}
+
+.tag {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-weight: 600;
+}
+
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.day-cell {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px 4px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.03);
+  min-height: 64px;
+}
+
+.day-cell.today {
+  border-color: rgba(212, 163, 92, 0.55);
+  background: var(--accent-soft);
+}
+
+.day-cell.complete {
+  border-color: rgba(111, 191, 154, 0.45);
+  background: var(--ok-soft);
+}
+
+.day-cell .d {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.day-cell .n {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-display);
+  font-size: 1rem;
+}
+
+.day-cell .p {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
+.tips-list {
+  margin: 0;
+  padding: 14px 14px 14px 32px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.tips-list li + li {
+  margin-top: 8px;
+}
+
+.install-hint {
+  margin: 18px 4px 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.empty {
+  color: var(--muted);
+  font-size: 0.9rem;
+  padding: 8px 2px;
+}
+
+@media (min-width: 480px) {
+  .app {
+    padding-top: 28px;
+  }
+}
